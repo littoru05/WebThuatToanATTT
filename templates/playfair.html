@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playfair Cipher - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-blue-950 via-black to-slate-950 opacity-80"></div>
+    
+    <div class="relative z-10 p-8">
+        <a href="/" class="inline-flex items-center gap-2 mb-10 text-blue-400 hover:text-blue-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-5xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-blue-500 pb-8">
+                <h1 class="text-5xl font-bold text-blue-400 mb-2">🎲 PLAYFAIR CIPHER 🎲</h1>
+                <p class="text-blue-300 text-sm tracking-widest">Matrix-Based Classical Encryption | 5×5 Grid | Pair Substitution</p>
+                <div class="text-xs text-blue-200 mt-4 space-y-1">
+                    <div>Year: 1854 | Developer: Charles Wheatstone</div>
+                    <div>Block Size: 2 characters | Key: Arbitrary</div>
+                </div>
+            </header>
+
+            <!-- TEST CASES -->
+            <section class="mb-12 border-2 border-blue-700 p-6 bg-blue-950/30">
+                <h3 class="text-xl font-bold text-blue-300 mb-4">╔ TEST CASES ╗</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-200">
+                    <div class="bg-black/50 p-3 border-l-2 border-blue-500">
+                        <p class="font-mono"><strong>Test 1:</strong></p>
+                        <p>Key: SECRET</p>
+                        <p>Plain: HELLO</p>
+                        <p>Expect: ISKYIQ</p>
+                    </div>
+                    <div class="bg-black/50 p-3 border-l-2 border-blue-500">
+                        <p class="font-mono"><strong>Test 2:</strong></p>
+                        <p>Key: PLAYFAIRECIPHER</p>
+                        <p>Plain: ATTACKATWINSLOWESTATE</p>
+                        <p>Expect: GAKWBPVFENTWSQXWFTNDE</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ENCRYPT SECTION -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-blue-400 mb-6 border-b-2 border-blue-500 pb-3">
+                    ► ENCRYPTION PROCESS
+                </h2>
+                <div class="bg-blue-950/20 border-2 border-blue-500 p-6 space-y-4">
+                    <div>
+                        <label class="block text-blue-300 font-bold mb-2 text-sm">Khóa (Key):</label>
+                        <input type="text" id="playfair-key" class="w-full px-3 py-2 bg-black border border-blue-600 text-blue-200 font-mono focus:outline-none focus:border-blue-400" placeholder="VD: SECRET">
+                    </div>
+                    <div>
+                        <label class="block text-blue-300 font-bold mb-2 text-sm">Plaintext:</label>
+                        <textarea id="playfair-plaintext" class="w-full px-3 py-2 bg-black border border-blue-600 text-blue-200 font-mono h-20 focus:outline-none focus:border-blue-400 resize-none" placeholder="VD: HELLO"></textarea>
+                    </div>
+                    <button onclick="playfairEncrypt()" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all border-2 border-blue-400 active:scale-95">
+                        [ ENCRYPT ]
+                    </button>
+                    <div id="playfair-encrypt-result" style="display: none;" class="bg-black border-2 border-blue-400 p-4 mt-4">
+                        <p class="text-blue-300 text-xs font-bold mb-2">CIPHERTEXT:</p>
+                        <p id="playfair-encrypt-text" class="font-mono text-xl text-blue-100 tracking-widest break-all"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DECRYPT SECTION -->
+            <div>
+                <h2 class="text-2xl font-bold text-cyan-400 mb-6 border-b-2 border-cyan-500 pb-3">
+                    ◄ DECRYPTION PROCESS
+                </h2>
+                <div class="bg-cyan-950/20 border-2 border-cyan-500 p-6 space-y-4">
+                    <div>
+                        <label class="block text-cyan-300 font-bold mb-2 text-sm">Khóa (Key):</label>
+                        <input type="text" id="playfair-decrypt-key" class="w-full px-3 py-2 bg-black border border-cyan-600 text-cyan-200 font-mono focus:outline-none focus:border-cyan-400" placeholder="VD: SECRET">
+                    </div>
+                    <div>
+                        <label class="block text-cyan-300 font-bold mb-2 text-sm">Ciphertext:</label>
+                        <textarea id="playfair-ciphertext" class="w-full px-3 py-2 bg-black border border-cyan-600 text-cyan-200 font-mono h-20 focus:outline-none focus:border-cyan-400 resize-none" placeholder="VD: ISKYIQ"></textarea>
+                    </div>
+                    <button onclick="playfairDecrypt()" class="w-full px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-all border-2 border-cyan-400 active:scale-95">
+                        [ DECRYPT ]
+                    </button>
+                    <div id="playfair-decrypt-result" style="display: none;" class="bg-black border-2 border-cyan-400 p-4 mt-4">
+                        <p class="text-cyan-300 text-xs font-bold mb-2">PLAINTEXT:</p>
+                        <p id="playfair-decrypt-text" class="font-mono text-xl text-cyan-100 tracking-widest break-all"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function playfairEncrypt() {
+            const plaintext = document.getElementById('playfair-plaintext').value;
+            const key = document.getElementById('playfair-key').value;
+            
+            try {
+                const response = await fetch('/api/playfair/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('playfair-encrypt-text').textContent = data.result;
+                    document.getElementById('playfair-encrypt-result').style.display = 'block';
+                    document.getElementById('playfair-ciphertext').value = data.result;
+                } else {
+                    alert('❌ Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        async function playfairDecrypt() {
+            const ciphertext = document.getElementById('playfair-ciphertext').value;
+            const key = document.getElementById('playfair-decrypt-key').value;
+            
+            try {
+                const response = await fetch('/api/playfair/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('playfair-decrypt-text').textContent = data.result;
+                    document.getElementById('playfair-decrypt-result').style.display = 'block';
+                } else {
+                    alert('❌ Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ Lỗi kết nối: ' + e.message);
+            }
+        }
+    </script>
+    <script>
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>

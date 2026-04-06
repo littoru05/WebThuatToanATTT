@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSA Cryptosystem - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-red-950 via-black to-orange-950 opacity-80"></div>
+    
+    <div class="relative z-10 p-8">
+        <a href="/" class="inline-flex items-center gap-2 mb-10 text-red-400 hover:text-red-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-red-500 pb-8">
+                <h1 class="text-5xl font-bold text-red-400 mb-2">🔑 RSA CRYPTOSYSTEM 🔑</h1>
+                <p class="text-red-300 text-sm tracking-widest">Public-Key Cryptography | Three-Step Process | Prime Number Based</p>
+                <div class="text-xs text-red-200 mt-4 space-y-1">
+                    <div>Theory: 1977 | Inventors: Rivest, Shamir, Adleman</div>
+                    <div>Security: Large Prime Products | Modern Use: TLS/SSL, Email, Blockchain</div>
+                </div>
+            </header>
+
+            <!-- TEST CASES -->
+            <section class="mb-12 border-2 border-red-700 p-6 bg-red-950/30">
+                <h3 class="text-xl font-bold text-red-300 mb-4">╔ STANDARD TEST CASE ╗</h3>
+                <div class="bg-black/50 p-4 border-l-3 border-red-500 text-sm text-red-200 space-y-1 font-mono">
+                    <p><strong>Step 1:</strong> p=61, q=53, e=17</p>
+                    <p><strong>Result:</strong> n=3233, φ(n)=3120, d=2753</p>
+                    <p class="text-red-100">Public Key: (e=17, n=3233) | Private Key: (d=2753, n=3233)</p>
+                    <p class="mt-3"><strong>Step 2 & 3:</strong> Plaintext=123 → Ciphertext=855 → Plaintext=123</p>
+                </div>
+            </section>
+
+            <!-- THREE STEPS LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                
+                <!-- STEP 1: KEY GENERATION -->
+                <div class="border-2 border-red-500 bg-red-950/20 p-6">
+                    <h2 class="text-xl font-bold text-red-400 mb-4 border-b-2 border-red-500 pb-2">① KEY GENERATION</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-red-300 text-sm font-bold">p (Prime 1):</label>
+                            <input type="number" id="rsa-p" class="w-full px-3 py-2 mt-1 bg-black border border-red-600 text-red-200 font-mono focus:outline-none focus:border-red-400" placeholder="61">
+                        </div>
+                        <div>
+                            <label class="text-red-300 text-sm font-bold">q (Prime 2):</label>
+                            <input type="number" id="rsa-q" class="w-full px-3 py-2 mt-1 bg-black border border-red-600 text-red-200 font-mono focus:outline-none focus:border-red-400" placeholder="53">
+                        </div>
+                        <div>
+                            <label class="text-red-300 text-sm font-bold">e (Public Exponent):</label>
+                            <input type="number" id="rsa-e" class="w-full px-3 py-2 mt-1 bg-black border border-red-600 text-red-200 font-mono focus:outline-none focus:border-red-400" placeholder="17">
+                        </div>
+                        <button onclick="rsaGenerate()" class="w-full px-4 py-3 mt-3 bg-red-600 hover:bg-red-500 text-white font-bold border-2 border-red-400 transition-all active:scale-95">
+                            [ GENERATE KEYS ]
+                        </button>
+                        <div id="rsa-generate-result" style="display: none;" class="bg-black border-2 border-red-400 p-3 mt-3 text-xs text-red-100 font-mono space-y-1">
+                            <p id="rsa-gen-n"></p>
+                            <p id="rsa-gen-d"></p>
+                            <p class="text-red-300 mt-2">✓ Keys Generated</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: ENCRYPTION -->
+                <div class="border-2 border-orange-500 bg-orange-950/20 p-6">
+                    <h2 class="text-xl font-bold text-orange-400 mb-4 border-b-2 border-orange-500 pb-2">② ENCRYPTION</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-orange-300 text-sm font-bold">Plaintext (M):</label>
+                            <input type="number" id="rsa-plaintext" class="w-full px-3 py-2 mt-1 bg-black border border-orange-600 text-orange-200 font-mono focus:outline-none focus:border-orange-400" placeholder="123">
+                        </div>
+                        <div>
+                            <label class="text-orange-300 text-sm font-bold">e (Public):</label>
+                            <input type="number" id="rsa-encrypt-e" readonly class="w-full px-3 py-2 mt-1 bg-black/50 border border-orange-600 text-orange-300 font-mono opacity-75">
+                        </div>
+                        <div>
+                            <label class="text-orange-300 text-sm font-bold">n (Public):</label>
+                            <input type="number" id="rsa-encrypt-n" readonly class="w-full px-3 py-2 mt-1 bg-black/50 border border-orange-600 text-orange-300 font-mono opacity-75">
+                        </div>
+                        <button onclick="rsaEncrypt()" class="w-full px-4 py-3 mt-3 bg-orange-600 hover:bg-orange-500 text-white font-bold border-2 border-orange-400 transition-all active:scale-95">
+                            [ ENCRYPT: C=M^e mod n ]
+                        </button>
+                        <div id="rsa-encrypt-result" style="display: none;" class="bg-black border-2 border-orange-400 p-3 mt-3 text-orange-100 font-mono text-center">
+                            <p class="text-xs text-orange-300 mb-1">CIPHERTEXT</p>
+                            <p id="rsa-encrypt-text" class="text-2xl font-bold"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: DECRYPTION -->
+                <div class="border-2 border-yellow-500 bg-yellow-950/20 p-6">
+                    <h2 class="text-xl font-bold text-yellow-400 mb-4 border-b-2 border-yellow-500 pb-2">③ DECRYPTION</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-yellow-300 text-sm font-bold">Ciphertext (C):</label>
+                            <input type="number" id="rsa-ciphertext" class="w-full px-3 py-2 mt-1 bg-black border border-yellow-600 text-yellow-200 font-mono focus:outline-none focus:border-yellow-400" placeholder="855">
+                        </div>
+                        <div>
+                            <label class="text-yellow-300 text-sm font-bold">d (Private):</label>
+                            <input type="number" id="rsa-decrypt-d" readonly class="w-full px-3 py-2 mt-1 bg-black/50 border border-yellow-600 text-yellow-300 font-mono opacity-75">
+                        </div>
+                        <div>
+                            <label class="text-yellow-300 text-sm font-bold">n (Public):</label>
+                            <input type="number" id="rsa-decrypt-n" readonly class="w-full px-3 py-2 mt-1 bg-black/50 border border-yellow-600 text-yellow-300 font-mono opacity-75">
+                        </div>
+                        <button onclick="rsaDecrypt()" class="w-full px-4 py-3 mt-3 bg-yellow-600 hover:bg-yellow-500 text-white font-bold border-2 border-yellow-400 transition-all active:scale-95">
+                            [ DECRYPT: M=C^d mod n ]
+                        </button>
+                        <div id="rsa-decrypt-result" style="display: none;" class="bg-black border-2 border-yellow-400 p-3 mt-3 text-yellow-100 font-mono text-center">
+                            <p class="text-xs text-yellow-300 mb-1">PLAINTEXT</p>
+                            <p id="rsa-decrypt-text" class="text-2xl font-bold"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPLANATION -->
+            <section class="border-2 border-gray-600 p-6 bg-gray-950/30">
+                <h3 class="text-lg font-bold text-gray-300 mb-3">╔ HOW IT WORKS ╗</h3>
+                <div class="text-sm text-gray-300 space-y-2 font-mono">
+                    <p>① <strong>Generate Keys:</strong> Pick 2 large prime numbers (p, q), compute n=p×q, φ(n)=(p-1)×(q-1)</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;Choose e coprime to φ(n), compute d = e^(-1) mod φ(n)</p>
+                    <p>② <strong>Encrypt:</strong> Ciphertext C = Plaintext^e mod n (using public key e, n)</p>
+                    <p>③ <strong>Decrypt:</strong> Plaintext M = Ciphertext^d mod n (using private key d, n)</p>
+                    <p class="mt-3 text-gray-400">💡 Only holder of d can decrypt. Breaking RSA requires factoring n.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        async function rsaGenerate() {
+            const p = parseInt(document.getElementById('rsa-p').value);
+            const q = parseInt(document.getElementById('rsa-q').value);
+            const e = parseInt(document.getElementById('rsa-e').value);
+            
+            try {
+                const response = await fetch('/api/rsa/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ p, q, e })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const n = data.n, d = data.d, phi = data.phi;
+                    
+                    document.getElementById('rsa-encrypt-e').value = e;
+                    document.getElementById('rsa-encrypt-n').value = n;
+                    document.getElementById('rsa-decrypt-d').value = d;
+                    document.getElementById('rsa-decrypt-n').value = n;
+                    
+                    document.getElementById('rsa-gen-n').textContent = `n = ${p}×${q} = ${n}`;
+                    document.getElementById('rsa-gen-d').textContent = `φ(n) = ${phi} | d = ${d}`;
+                    document.getElementById('rsa-generate-result').style.display = 'block';
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        async function rsaEncrypt() {
+            const plaintext = document.getElementById('rsa-plaintext').value;
+            const e = parseInt(document.getElementById('rsa-encrypt-e').value);
+            const n = parseInt(document.getElementById('rsa-encrypt-n').value);
+            
+            try {
+                const response = await fetch('/api/rsa/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, e, n })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('rsa-encrypt-text').textContent = data.result;
+                    document.getElementById('rsa-encrypt-result').style.display = 'block';
+                    document.getElementById('rsa-ciphertext').value = data.result;
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        async function rsaDecrypt() {
+            const ciphertext = document.getElementById('rsa-ciphertext').value;
+            const d = parseInt(document.getElementById('rsa-decrypt-d').value);
+            const n = parseInt(document.getElementById('rsa-decrypt-n').value);
+            
+            try {
+                const response = await fetch('/api/rsa/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, d, n })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('rsa-decrypt-text').textContent = data.result;
+                    document.getElementById('rsa-decrypt-result').style.display = 'block';
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+    </script>
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+        <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-emerald-600/10 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="max-w-5xl mx-auto relative z-10">
+        <a href="index.html" class="inline-flex items-center gap-2 mb-8 text-purple-400 hover:text-purple-300 transition-colors">
+            <span>←</span>
+            <span class="text-sm font-medium">Quay lại</span>
+        </a>
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter uppercase">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    RSA Encryption
+                </span>
+            </h1>
+            <p class="text-slate-400 text-sm mt-4">Hệ mã hóa khóa công khai cơ bản</p>
+        </header>
+
+        <!-- BƯỚC 1: TẠO KHÓA -->
+        <div class="glass p-8 rounded-3xl border border-slate-800 shadow-xl mb-8">
+            <h2 class="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-2">
+                <span class="text-3xl">1️⃣</span> Tạo Khóa RSA (Generate Keys)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">p (Số nguyên tố 1)</label>
+                    <input type="number" id="rsa-p" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="VD: 61">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">q (Số nguyên tố 2)</label>
+                    <input type="number" id="rsa-q" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="VD: 53">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">e (Public exponent)</label>
+                    <input type="number" id="rsa-e" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="VD: 17">
+                </div>
+            </div>
+            <button onclick="rsaGenerate()" class="w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                🔐 Tạo Khóa
+            </button>
+            <div id="rsa-generate-result" style="display: none;" class="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p id="rsa-generate-text" class="text-sm leading-relaxed text-purple-300"></p>
+            </div>
+        </div>
+
+        <!-- BƯỚC 2: MÃ HÓA -->
+        <div class="glass p-8 rounded-3xl border border-slate-800 shadow-xl mb-8">
+            <h2 class="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-2">
+                <span class="text-3xl">2️⃣</span> Mã Hóa Dữ Liệu (Encrypt)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Văn bản (M)</label>
+                    <input type="number" id="rsa-plaintext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="VD: 123">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">e (Public)</label>
+                    <input type="number" id="rsa-encrypt-e" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="Tự động từ bước 1" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">n (Public)</label>
+                    <input type="number" id="rsa-encrypt-n" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500" placeholder="Tự động từ bước 1" readonly>
+                </div>
+            </div>
+            <button onclick="rsaEncrypt()" class="w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                🔒 Mã Hóa
+            </button>
+            <div id="rsa-encrypt-result" style="display: none;" class="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p id="rsa-encrypt-text" class="font-mono text-lg text-purple-300"></p>
+            </div>
+        </div>
+
+        <!-- BƯỚC 3: GIẢI MÃ -->
+        <div class="glass p-8 rounded-3xl border border-slate-800 shadow-xl mb-8">
+            <h2 class="text-2xl font-bold text-emerald-400 mb-6 flex items-center gap-2">
+                <span class="text-3xl">3️⃣</span> Giải Mã Dữ Liệu (Decrypt)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="md:col-span-1">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Mã hóa (C)</label>
+                    <input type="number" id="rsa-ciphertext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500" placeholder="Tự động từ bước 2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">d (Private)</label>
+                    <input type="number" id="rsa-decrypt-d" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500" placeholder="Tự động từ bước 1" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">n (Public)</label>
+                    <input type="number" id="rsa-decrypt-n" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500" placeholder="Tự động từ bước 1" readonly>
+                </div>
+            </div>
+            <button onclick="rsaDecrypt()" class="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                🔓 Giải Mã
+            </button>
+            <div id="rsa-decrypt-result" style="display: none;" class="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                <p id="rsa-decrypt-text" class="font-mono text-lg text-emerald-300"></p>
+            </div>
+        </div>
+
+        <!-- HƯỚNG DẪN -->
+        <div class="glass p-6 rounded-2xl border border-slate-800">
+            <h3 class="text-lg font-bold text-slate-300 mb-3">📝 Hướng dẫn RSA</h3>
+            <ul class="text-sm text-slate-400 space-y-2">
+                <li class="flex gap-2"><span class="text-purple-400">•</span> <strong>Bước 1:</strong> Chọn 2 số nguyên tố p, q và số e -> Tạo ra n và khóa riêng d</li>
+                <li class="flex gap-2"><span class="text-purple-400">•</span> <strong>Bước 2:</strong> Nhập văn bản M -> Tính C = M^e mod n</li>
+                <li class="flex gap-2"><span class="text-purple-400">•</span> <strong>Bước 3:</strong> Giải mã -> Tính M = C^d mod n</li>
+                <li class="flex gap-2"><span class="text-purple-400">•</span> <strong>Ví dụ:</strong> p=61, q=53, e=17 → n=3233, d=2753</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function rsaGenerate() {
+            const p = parseInt(document.getElementById('rsa-p').value);
+            const q = parseInt(document.getElementById('rsa-q').value);
+            const e = parseInt(document.getElementById('rsa-e').value);
+            
+            try {
+                const response = await fetch('/api/rsa/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ p, q, e })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const n = data.n;
+                    const d = data.d;
+                    const phi = data.phi;
+                    
+                    document.getElementById('rsa-encrypt-e').value = e;
+                    document.getElementById('rsa-encrypt-n').value = n;
+                    document.getElementById('rsa-decrypt-d').value = d;
+                    document.getElementById('rsa-decrypt-n').value = n;
+                    
+                    let html = `<strong>Kết quả tạo khóa RSA:</strong><br><br>`;
+                    html += `<strong>Tính toán:</strong><br>`;
+                    html += `• n = p × q = ${p} × ${q} = <strong>${n}</strong><br>`;
+                    html += `• φ(n) = (p-1) × (q-1) = ${p-1} × ${q-1} = <strong>${phi}</strong><br>`;
+                    html += `• e = <strong>${e}</strong><br>`;
+                    html += `• d = e^(-1) mod φ(n) = <strong>${d}</strong><br><br>`;
+                    html += `<strong class="text-blue-300">Khóa Công Khai:</strong> (e=${e}, n=${n})<br>`;
+                    html += `<strong class="text-emerald-300">Khóa Riêng Tư:</strong> (d=${d}, n=${n})`;
+                    
+                    document.getElementById('rsa-generate-text').innerHTML = html;
+                    document.getElementById('rsa-generate-result').style.display = 'block';
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        async function rsaEncrypt() {
+            const plaintext = document.getElementById('rsa-plaintext').value;
+            const e = parseInt(document.getElementById('rsa-encrypt-e').value);
+            const n = parseInt(document.getElementById('rsa-encrypt-n').value);
+            
+            try {
+                const response = await fetch('/api/rsa/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, e, n })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('rsa-encrypt-text').textContent = `Mã hóa: M=${plaintext} → C = ${data.result}`;
+                    document.getElementById('rsa-encrypt-result').style.display = 'block';
+                    document.getElementById('rsa-ciphertext').value = data.result;
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        async function rsaDecrypt() {
+            const ciphertext = document.getElementById('rsa-ciphertext').value;
+            const d = parseInt(document.getElementById('rsa-decrypt-d').value);
+            const n = parseInt(document.getElementById('rsa-decrypt-n').value);
+            
+            try {
+                const response = await fetch('/api/rsa/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, d, n })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('rsa-decrypt-text').textContent = `Giải mã: C=${ciphertext} → M = ${data.result}`;
+                    document.getElementById('rsa-decrypt-result').style.display = 'block';
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+    </script>
+    <script>
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>

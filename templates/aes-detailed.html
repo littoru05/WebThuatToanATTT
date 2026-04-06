@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Detailed (Step-by-Step) - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3, h4 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+        .matrix { background: black; border: 2px solid #a855f7; padding: 1rem; margin: 0.5rem 0; }
+        .matrix-row { display: flex; gap: 0.5rem; margin: 0.3rem 0; }
+        .matrix-cell { width: 60px; text-align: center; padding: 0.5rem; background: #581c87; color: #e9d5ff; border: 1px solid #a855f7; font-weight: bold; }
+        .step-section { border-left: 4px solid #a855f7; padding-left: 1rem; margin: 1.5rem 0; }
+        .sbox-table { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; padding: 1rem; }
+        .sbox-cell { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #581c87; border: 1px solid #a855f7; font-size: 11px; color: #e9d5ff; }
+        table { border-collapse: collapse; margin: 1rem 0; width: 100%; background: black; border: 2px solid #a855f7; }
+        th, td { border: 1px solid #581c87; padding: 0.5rem; text-align: center; color: #e9d5ff; }
+        th { background: #5b21b6; font-weight: bold; }
+        tr:hover { background: #581c87; }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-purple-950 via-black to-violet-950 opacity-80 pointer-events-none"></div>
+    
+    <div class="relative z-10 p-8">
+        <a href="/" class="inline-flex items-center gap-2 mb-10 text-purple-400 hover:text-purple-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-purple-500 pb-8">
+                <h1 class="text-5xl font-bold text-purple-400 mb-2">⚡ AES DETAILED ANALYSIS ⚡</h1>
+                <p class="text-purple-300 text-sm tracking-widest">Step-by-Step AES-128 Encryption (like simewu.com style)</p>
+            </header>
+
+            <!-- INPUT SECTION -->
+            <section class="mb-12 border-2 border-purple-700 p-6 bg-purple-950/30">
+                <h3 class="text-xl font-bold text-purple-300 mb-4">╔ INPUT & ANALYSIS ╗</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-purple-300 font-bold block mb-2">Message (Plaintext):</label>
+                        <input type="text" id="aes-detailed-plaintext" class="w-full px-4 py-2 bg-black border-2 border-purple-600 text-purple-200 font-mono focus:outline-none focus:border-purple-400" placeholder="01 23 45 67 89 AB CD EF FE DC BA 98 76 54 32 10">
+                    </div>
+                    <div>
+                        <label class="text-purple-300 font-bold block mb-2">Key (256-bit):</label>
+                        <input type="text" id="aes-detailed-key" class="w-full px-4 py-2 bg-black border-2 border-purple-600 text-purple-200 font-mono focus:outline-none focus:border-purple-400" placeholder="0F 15 71 C9 47 D9 E8 59 1C B7 AD D6 AF 7F 67 98">
+                    </div>
+                    <button onclick="analyzeAESDetailed()" class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold border-2 border-purple-400 transition-all active:scale-95">
+                        [ ANALYZE: STEP-BY-STEP ]
+                    </button>
+                </div>
+            </section>
+
+            <!-- STEPS OUTPUT CONTAINER -->
+            <div id="aes-detailed-output" style="display: none;">
+                
+                <!-- Step 0: Initialization -->
+                <section class="step-section">
+                    <h3 class="text-2xl font-bold text-purple-400 mb-4">Step 0: Initialization</h3>
+                    <p class="text-purple-200 mb-4">Plaintext converted to 4×4 state matrix:</p>
+                    <div id="step0-plaintext-matrix" class="matrix"></div>
+                    
+                    <p class="text-purple-200 mb-4 mt-6">Key converted to 4×4 matrix:</p>
+                    <div id="step0-key-matrix" class="matrix"></div>
+                </section>
+
+                <!-- Key Expansion -->
+                <section class="step-section">
+                    <h3 class="text-2xl font-bold text-purple-400 mb-4">Key Expansion (Rcon)</h3>
+                    <p class="text-purple-200 mb-4">Expansion constants (RCON) used:</p>
+                    <table id="rcon-table">
+                        <tr>
+                            <th>Round</th>
+                            <th>RCON[0]</th>
+                            <th>RCON[1]</th>
+                            <th>RCON[2]</th>
+                            <th>RCON[3]</th>
+                        </tr>
+                    </table>
+                </section>
+
+                <!-- Steps 1-41 -->
+                <div id="detailed-steps-container"></div>
+
+                <!-- Final Output -->
+                <section class="step-section">
+                    <h3 class="text-2xl font-bold text-purple-400 mb-4">Final Output</h3>
+                    <p class="text-purple-300 font-bold mb-2">Ciphertext (Hex):</p>
+                    <p id="final-ciphertext" class="bg-black border-2 border-purple-400 p-4 text-purple-100 font-mono break-all"></p>
+                </section>
+
+            </div>
+
+            <!-- ERROR MESSAGE -->
+            <div id="aes-detailed-error" style="display: none;" class="border-2 border-red-600 bg-red-950/30 p-6 text-red-300">
+                <p id="error-message"></p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function formatMatrix(state) {
+            if (!state || !state[0]) return '<div class="text-red-400">Invalid state</div>';
+            let html = '<div class="matrix">';
+            for (let i = 0; i < 4; i++) {
+                html += '<div class="matrix-row">';
+                for (let j = 0; j < 4; j++) {
+                    const val = String(state[i][j]).padStart(3, ' ');
+                    html += `<div class="matrix-cell">${val}</div>`;
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function hexToDisplayFormat(hexStr) {
+            // Convert "34D3F0EE" format to "34 D3 F0 EE" for display
+            return hexStr.match(/.{1,2}/g).join(' ');
+        }
+
+        async function analyzeAESDetailed() {
+            const plaintext = document.getElementById('aes-detailed-plaintext').value || "Hello!!!!!!!!!!!!!";
+            const key = document.getElementById('aes-detailed-key').value || "mysecretpassword";
+            const errorDiv = document.getElementById('aes-detailed-error');
+            const outputDiv = document.getElementById('aes-detailed-output');
+            
+            errorDiv.style.display = 'none';
+            outputDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/aes/encrypt-detailed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    errorDiv.style.display = 'block';
+                    document.getElementById('error-message').textContent = data.error || 'Unknown error';
+                    return;
+                }
+
+                // Display initialization
+                const pt_bytes = data.plaintext.split(' ').map(h => parseInt(h, 16));
+                const pt_matrix = [];
+                for (let i = 0; i < 4; i++) {
+                    pt_matrix[i] = [];
+                    for (let j = 0; j < 4; j++) {
+                        pt_matrix[i][j] = pt_bytes[i + j * 4];
+                    }
+                }
+                
+                document.getElementById('step0-plaintext-matrix').innerHTML = formatMatrix(pt_matrix);
+
+                const key_bytes = data.key.split(' ').map(h => parseInt(h, 16));
+                const key_matrix = [];
+                for (let i = 0; i < 4; i++) {
+                    key_matrix[i] = [];
+                    for (let j = 0; j < 4; j++) {
+                        key_matrix[i][j] = key_bytes[i + j * 4];
+                    }
+                }
+                document.getElementById('step0-key-matrix').innerHTML = formatMatrix(key_matrix);
+
+                // Display each step
+                const stepsContainer = document.getElementById('detailed-steps-container');
+                stepsContainer.innerHTML = '';
+
+                if (data.steps && data.steps.length > 0) {
+                    data.steps.slice(1).forEach((step, idx) => {
+                        const section = document.createElement('section');
+                        section.className = 'step-section';
+                        section.innerHTML = `
+                            <h4 class="text-xl font-bold text-purple-300 mb-3">Step ${step.step}: ${step.name}</h4>
+                            ${formatMatrix(step.state)}
+                        `;
+                        stepsContainer.appendChild(section);
+                    });
+                }
+
+                // Display final ciphertext
+                document.getElementById('final-ciphertext').textContent = hexToDisplayFormat(data.ciphertext);
+                
+                outputDiv.style.display = 'block';
+                outputDiv.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (e) {
+                errorDiv.style.display = 'block';
+                document.getElementById('error-message').textContent = '❌ ' + e.message;
+            }
+        }
+
+        // Load example on page load
+        window.addEventListener('load', () => {
+            document.getElementById('aes-detailed-plaintext').value = "Hello!!!!!!!!!!!!";
+            document.getElementById('aes-detailed-key').value = "mysecretpassword";
+        });
+    </script>
+    <script>
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>

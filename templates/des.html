@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DES Encryption - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+        
+        .bits-matrix {
+            display: inline-grid;
+            grid-template-columns: repeat(8, 40px);
+            gap: 2px;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 2px solid #22c55e;
+            margin: 4px 0;
+        }
+        
+        .bit-cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #15803d;
+            border: 1px solid #4ade80;
+            color: #bbf7d0;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .steps-container {
+            max-height: 600px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #4ade80;
+            padding: 8px;
+        }
+        
+        .step-item {
+            background: rgba(34, 197, 94, 0.2);
+            border-left: 4px solid #22c55e;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 4px;
+        }
+        
+        .step-number {
+            font-size: 12px;
+            color: #4ade80;
+            font-weight: bold;
+        }
+        
+        .step-name {
+            font-size: 14px;
+            color: #bbf7d0;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-green-950 via-black to-emerald-950 opacity-80"></div>
+    
+    <div class="relative z-10 p-8">
+        <a href="index.html" class="inline-flex items-center gap-2 mb-10 text-green-400 hover:text-green-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-green-500 pb-8">
+                <h1 class="text-5xl font-bold text-green-400 mb-2">📦 DATA ENCRYPTION STD 📦</h1>
+                <p class="text-green-300 text-sm tracking-widest">Block Cipher | 64-bit Block | 56-bit Key | 16-Round Feistel</p>
+                <div class="text-xs text-green-200 mt-4 space-y-1">
+                    <div>Year: 1977 | Developer: IBM | Standard: NIST</div>
+                    <div>Xem các bước xử lý 16 vòng Feistel chi tiết</div>
+                </div>
+            </header>
+
+            <!-- INPUT SECTION -->
+            <section class="mb-8 border-2 border-green-600 p-6 bg-green-950/20">
+                <h3 class="text-xl font-bold text-green-300 mb-6">╔ MÃ HÓA BƯỚC-TỪNG-BƯỚC ╗</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="text-green-300 font-bold mb-2 text-sm block">Plaintext (64 bits):</label>
+                        <input type="text" id="des-plaintext" 
+                               class="w-full px-3 py-2 bg-black border border-green-600 text-green-200 font-mono focus:outline-none focus:border-green-400" 
+                               placeholder="VD: Hello!!!">
+                        <p class="text-green-200 text-xs mt-1">* 8 ký tự = 64 bits (DES block size)</p>
+                    </div>
+                    <div>
+                        <label class="text-green-300 font-bold mb-2 text-sm block">Key (56 bits effective):</label>
+                        <input type="text" id="des-key" 
+                               class="w-full px-3 py-2 bg-black border border-green-600 text-green-200 font-mono focus:outline-none focus:border-green-400" 
+                               placeholder="VD: password">
+                        <p class="text-green-200 text-xs mt-1">* 8 ký tự (64 bits với parity)</p>
+                    </div>
+                </div>
+                
+                <button onclick="desEncryptDetailed()" 
+                        class="w-full px-4 py-3 bg-green-600 hover:bg-green-500 text-white font-bold border-2 border-green-400 transition-all active:scale-95">
+                    [ ► MÃ HÓA - HIỂN THỊ 16 VÒNG ]
+                </button>
+            </section>
+
+            <!-- STEPS DISPLAY -->
+            <div id="steps-output" style="display: none;">
+                <!-- Key Info -->
+                <section class="mb-8 border-2 border-green-500 p-6 bg-green-950/20">
+                    <h3 class="text-lg font-bold text-green-300 mb-4">☞ THÔNG TIN MÃ HÓA</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-black border border-green-600 p-3">
+                            <p class="text-green-400 text-xs font-bold">PLAINTEXT (HEX)</p>
+                            <p id="display-plaintext" class="text-green-200 font-mono break-all mt-1"></p>
+                        </div>
+                        <div class="bg-black border border-green-600 p-3">
+                            <p class="text-green-400 text-xs font-bold">KEY (HEX)</p>
+                            <p id="display-key" class="text-green-200 font-mono break-all mt-1"></p>
+                        </div>
+                        <div class="bg-black border border-green-600 p-3">
+                            <p class="text-green-400 text-xs font-bold">CIPHERTEXT (HEX)</p>
+                            <p id="display-ciphertext" class="text-green-200 font-mono break-all mt-1"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Steps Timeline -->
+                <section class="border-2 border-green-500 p-6 bg-green-950/20">
+                    <h3 class="text-lg font-bold text-green-300 mb-4">⚙️ CÁC VÒNG XỬ LÝ (16 ROUNDS + INITIAL + FINAL)</h3>
+                    <p class="text-green-200 text-xs mb-4">Nhấp vào từng vòng để xem ma trận bit (64 bits = 8x8)</p>
+                    
+                    <div class="steps-container" id="steps-list">
+                        <!-- Sẽ được điền bởi JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- LOADING INDICATOR -->
+            <div id="loading" style="display: none;" class="text-center py-8">
+                <p class="text-green-300 text-lg">⏳ Đang xử lý...</p>
+            </div>
+
+            <!-- ERROR DISPLAY -->
+            <div id="error-display" style="display: none;" class="border-2 border-red-600 bg-red-950/20 p-6 mt-8">
+                <p class="text-red-400 font-bold">❌ Lỗi:</p>
+                <p id="error-text" class="text-red-300 font-mono mt-2"></p>
+            </div>
+
+            <!-- INFO BOX -->
+            <section class="mt-12 border-2 border-gray-600 p-6 bg-gray-950/30">
+                <h3 class="text-lg font-bold text-gray-300 mb-3">╔ THÔNG TIN CHUYÊN MÔN ╗</h3>
+                <div class="text-sm text-gray-300 space-y-2 font-mono">
+                    <p><strong>Kích Thước Block:</strong> 64 bits (8 bytes)</p>
+                    <p><strong>Kích Thước Khóa:</strong> 56 bits hiệu quả (64 bits với parity)</p>
+                    <p><strong>Số Vòng:</strong> 16 vòng Feistel</p>
+                    <p><strong>Cấu Trúc:</strong> Mạng Feistel với S-boxes và P-boxes</p>
+                    <p><strong>Chế Độ:</strong> ECB (Electronic Code Book)</p>
+                    <p class="text-red-400 mt-2">⚠️ DES đã bị coi là yếu về mã hóa. Sử dụng AES cho các ứng dụng thực tế.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        async function desEncryptDetailed() {
+            const plaintext = document.getElementById('des-plaintext').value;
+            const key = document.getElementById('des-key').value;
+            
+            if (!plaintext || !key) {
+                alert('❌ Vui lòng nhập plaintext và key!');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('steps-output').style.display = 'none';
+            document.getElementById('error-display').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/des/encrypt-detailed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('display-plaintext').textContent = data.plaintext;
+                    document.getElementById('display-key').textContent = data.key;
+                    document.getElementById('display-ciphertext').textContent = data.ciphertext;
+                    
+                    // Render steps
+                    const stepsList = document.getElementById('steps-list');
+                    stepsList.innerHTML = '';
+                    
+                    data.steps.forEach((step, idx) => {
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'step-item';
+                        
+                        // Step header
+                        const header = document.createElement('div');
+                        header.className = 'flex justify-between items-center cursor-pointer hover:bg-green-700/20 p-2 rounded';
+                        header.innerHTML = `
+                            <div>
+                                <p class="step-number">Step ${step.step}</p>
+                                <p class="step-name">${step.name}</p>
+                            </div>
+                            <span class="text-green-400 text-lg" onclick="event.stopPropagation()">▼</span>
+                        `;
+                        
+                        // Detailed info display
+                        const detailDiv = document.createElement('div');
+                        detailDiv.className = 'detail-container hidden mt-3';
+                        detailDiv.style.marginTop = '8px';
+                        
+                        let detailHTML = '';
+                        
+                        // Explanation
+                        if (step.explanation) {
+                            detailHTML += `<p style="color: #b4e7d2; font-size: 13px; margin-bottom: 8px; padding: 4px; background: rgba(16,185,129,0.2); border-left: 3px solid #10b981;">📝 ${step.explanation}</p>`;
+                        }
+                        
+                        // Create table with headers
+                        detailHTML += '<div style="overflow-x: auto; margin-bottom: 6px;">';
+                        detailHTML += '<table style="width: 100%; border-collapse: collapse; font-size: 10px; color: #b4e7d2;">';
+                        detailHTML += '<tr style="border-bottom: 2px solid #10b981;">';
+                        
+                        // Column headers
+                        detailHTML += '<th style="padding: 4px; text-align: center; color: #86efac; border-right: 1px solid #10b981;">Input</th>';
+                        detailHTML += '<th style="padding: 4px; text-align: center; color: #86efac; border-right: 1px solid #10b981;">Operation</th>';
+                        detailHTML += '<th style="padding: 4px; text-align: center; color: #86efac;">Output</th>';
+                        
+                        detailHTML += '</tr>';
+                        
+                        // Data rows
+                        detailHTML += '<tr style="border-bottom: 1px solid #065f46;">';
+                        
+                        // Input column (DES uses 64 bits = 8 bytes)
+                        detailHTML += '<td style="padding: 4px; border-right: 1px solid #10b981; vertical-align: top;">';
+                        if (step.input) {
+                            detailHTML += '<small style="display: block; color: #10b981; margin-bottom: 2px; font-weight: bold;">[ Input ]</small>';
+                            // Convert 8x8 bit matrix to 8 hex bytes
+                            for (let i = 0; i < 8; i++) {
+                                const byte = step.input[i].join('');
+                                const hex = parseInt(byte, 2).toString(16).toUpperCase().padStart(2, '0');
+                                detailHTML += `<div style="font-family: 'Roboto Mono';">${hex}</div>`;
+                            }
+                        }
+                        detailHTML += '</td>';
+                        
+                        // Operation column
+                        detailHTML += '<td style="padding: 4px; border-right: 1px solid #10b981; vertical-align: center; text-align: center; color: #fbbf24;">';
+                        detailHTML += `<small style="display: block; color: #10b981; margin-bottom: 4px; font-weight: bold;">${step.type ? step.type.toUpperCase() : 'DES'}</small>`;
+                        detailHTML += `<small style="color: #b4e7d2;">Round ${step.round || '?'}</small>`;
+                        detailHTML += '</td>';
+                        
+                        // Output column
+                        detailHTML += '<td style="padding: 4px; vertical-align: top;">';
+                        if (step.output) {
+                            detailHTML += '<small style="display: block; color: #10b981; margin-bottom: 2px; font-weight: bold;">[ Output ]</small>';
+                            // Convert 8x8 bit matrix to 8 hex bytes
+                            for (let i = 0; i < 8; i++) {
+                                const byte = step.output[i].join('');
+                                const hex = parseInt(byte, 2).toString(16).toUpperCase().padStart(2, '0');
+                                detailHTML += `<div style="font-family: 'Roboto Mono';">${hex}</div>`;
+                            }
+                        }
+                        detailHTML += '</td>';
+                        
+                        detailHTML += '</tr>';
+                        detailHTML += '</table>';
+                        detailHTML += '</div>';
+                        
+                        detailDiv.innerHTML = detailHTML;
+                        
+                        // Toggle on header click
+                        header.addEventListener('click', function() {
+                            detailDiv.classList.toggle('hidden');
+                            const span = header.querySelector('span');
+                            span.textContent = detailDiv.classList.contains('hidden') ? '▶' : '▼';
+                        });
+                        
+                        stepDiv.appendChild(header);
+                        stepDiv.appendChild(detailDiv);
+                        stepsList.appendChild(stepDiv);
+                    });
+                    
+                    document.getElementById('steps-output').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                } else {
+                    showError(data.error || 'Lỗi không xác định');
+                }
+            } catch (e) {
+                showError(e.message);
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-display').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+
+    <!-- Fix href to "/" for home link -->
+    <script>
+        // Change all index.html links to /
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-6xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-green-500 pb-8">
+                <h1 class="text-5xl font-bold text-green-400 mb-2">📦 DATA ENCRYPTION STD 📦</h1>
+                <p class="text-green-300 text-sm tracking-widest">Block Cipher | 64-bit Block | 56-bit Key | Feistel Network</p>
+                <div class="text-xs text-green-200 mt-4 space-y-1">
+                    <div>Year: 1977 | Developer: IBM | Standard: NIST</div>
+                    <div>Note: DES is now considered weak (replaced by AES)</div>
+                </div>
+            </header>
+
+            <!-- TEST CASES -->
+            <section class="mb-12 border-2 border-green-700 p-6 bg-green-950/30">
+                <h3 class="text-xl font-bold text-green-300 mb-4">╔ TEST CASES ╗</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-green-200 font-mono">
+                    <div class="bg-black/50 p-3 border-l-2 border-green-500">
+                        <p><strong>Test 1:</strong></p>
+                        <p>Key: 12345678</p>
+                        <p>Plain: Hello!!!</p>
+                        <p class="text-green-100 mt-1">Ciphertext appears in hex</p>
+                    </div>
+                    <div class="bg-black/50 p-3 border-l-2 border-green-500">
+                        <p><strong>Test 2:</strong></p>
+                        <p>Key: password</p>
+                        <p>Plain: Attacknow</p>
+                        <p class="text-green-100 mt-1">Run both to see pattern</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TWO-COLUMN LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- ENCRYPTION -->
+                <div class="border-2 border-green-500 bg-green-950/20 p-6">
+                    <h2 class="text-2xl font-bold text-green-400 mb-6 border-b-2 border-green-500 pb-3">
+                        ► ENCRYPTION
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-green-300 font-bold mb-2 text-sm block">Key (8 chars):</label>
+                            <input type="text" id="des-key" class="w-full px-3 py-2 bg-black border border-green-600 text-green-200 font-mono focus:outline-none focus:border-green-400" placeholder="password">
+                        </div>
+                        <div>
+                            <label class="text-green-300 font-bold mb-2 text-sm block">Plaintext:</label>
+                            <textarea id="des-plaintext" class="w-full px-3 py-2 bg-black border border-green-600 text-green-200 font-mono h-24 focus:outline-none focus:border-green-400 resize-none" placeholder="Hello!!!"></textarea>
+                        </div>
+                        <button onclick="desEncrypt()" class="w-full px-4 py-3 bg-green-600 hover:bg-green-500 text-white font-bold border-2 border-green-400 transition-all active:scale-95">
+                            [ ENCRYPT ]
+                        </button>
+                        <div id="des-encrypt-result" style="display: none;" class="bg-black border-2 border-green-400 p-4">
+                            <p class="text-green-300 text-xs font-bold mb-2">CIPHERTEXT (HEX):</p>
+                            <p id="des-encrypt-text" class="font-mono text-sm text-green-100 break-all"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DECRYPTION -->
+                <div class="border-2 border-emerald-500 bg-emerald-950/20 p-6">
+                    <h2 class="text-2xl font-bold text-emerald-400 mb-6 border-b-2 border-emerald-500 pb-3">
+                        ◄ DECRYPTION
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-emerald-300 font-bold mb-2 text-sm block">Key (8 chars):</label>
+                            <input type="text" id="des-decrypt-key" class="w-full px-3 py-2 bg-black border border-emerald-600 text-emerald-200 font-mono focus:outline-none focus:border-emerald-400" placeholder="password">
+                        </div>
+                        <div>
+                            <label class="text-emerald-300 font-bold mb-2 text-sm block">Ciphertext (Hex):</label>
+                            <textarea id="des-ciphertext" class="w-full px-3 py-2 bg-black border border-emerald-600 text-emerald-200 font-mono h-24 focus:outline-none focus:border-emerald-400 resize-none" placeholder="hex data"></textarea>
+                        </div>
+                        <button onclick="desDecrypt()" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold border-2 border-emerald-400 transition-all active:scale-95">
+                            [ DECRYPT ]
+                        </button>
+                        <div id="des-decrypt-result" style="display: none;" class="bg-black border-2 border-emerald-400 p-4">
+                            <p class="text-emerald-300 text-xs font-bold mb-2">PLAINTEXT:</p>
+                            <p id="des-decrypt-text" class="font-mono text-sm text-emerald-100 break-all"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- INFO BOX -->
+            <section class="mt-12 border-2 border-gray-600 p-6 bg-gray-950/30">
+                <h3 class="text-lg font-bold text-gray-300 mb-3">╔ TECHNICAL INFO ╗</h3>
+                <div class="text-sm text-gray-300 space-y-2 font-mono">
+                    <p><strong>Block Size:</strong> 64 bits (8 bytes)</p>
+                    <p><strong>Key Size:</strong> 56 bits effective (64 bits with parity)</p>
+                    <p><strong>Rounds:</strong> 16 Feistel rounds</p>
+                    <p><strong>Mode:</strong> ECB (Electronic Code Book)</p>
+                    <p><strong>Padding:</strong> PKCS7</p>
+                    <p class="text-red-400 mt-2">⚠️  WARNING: DES is cryptographically weak. Use AES for real applications.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        async function desEncrypt() {
+            const plaintext = document.getElementById('des-plaintext').value;
+            const key = document.getElementById('des-key').value;
+            
+            try {
+                const response = await fetch('/api/des/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('des-encrypt-text').textContent = data.result;
+                    document.getElementById('des-encrypt-result').style.display = 'block';
+                    document.getElementById('des-ciphertext').value = data.result;
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        async function desDecrypt() {
+            const ciphertext = document.getElementById('des-ciphertext').value;
+            const key = document.getElementById('des-decrypt-key').value;
+            
+            try {
+                const response = await fetch('/api/des/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('des-decrypt-text').textContent = data.result;
+                    document.getElementById('des-decrypt-result').style.display = 'block';
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
+    
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+        <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-emerald-600/10 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto relative z-10">
+        <a href="index.html" class="inline-flex items-center gap-2 mb-8 text-orange-400 hover:text-orange-300 transition-colors">
+            <span>←</span>
+            <span class="text-sm font-medium">Quay lại</span>
+        </a>
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter uppercase">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400">
+                    DES Encryption
+                </span>
+            </h1>
+            <p class="text-slate-400 text-sm mt-4">Data Encryption Standard - Mã hóa khối 64-bit</p>
+        </header>
+
+        <div class="glass p-8 rounded-3xl border border-slate-800 shadow-xl mb-8">
+            
+            <!-- MÃ HÓA -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-orange-400 mb-4 flex items-center gap-2">
+                    <span class="text-2xl">🔒</span> Mã Hóa DES
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Khóa (Key - 64 bit)</label>
+                        <input type="text" id="des-key" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500" placeholder="VD: password">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Văn Bản Gốc (Plaintext)</label>
+                        <textarea id="des-plaintext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 h-24 resize-none" placeholder="VD: Hello World"></textarea>
+                    </div>
+                    <button onclick="desEncrypt()" class="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                        🔐 Mã Hóa
+                    </button>
+                </div>
+                <div id="des-encrypt-result" style="display: none;" class="mt-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <p class="text-sm text-slate-400 mb-2">Kết quả mã hóa:</p>
+                    <p id="des-encrypt-text" class="font-mono text-sm text-orange-400 break-all"></p>
+                </div>
+            </div>
+
+            <!-- GIẢI MÃ -->
+            <div class="border-t border-slate-700 pt-8">
+                <h2 class="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
+                    <span class="text-2xl">🔓</span> Giải Mã DES
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Khóa (Key)</label>
+                        <input type="text" id="des-decrypt-key" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500" placeholder="VD: password">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Văn Bản Mã Hóa (Ciphertext - Hex)</label>
+                        <textarea id="des-ciphertext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 h-24 resize-none" placeholder="Dữ liệu hex từ phần mã hóa"></textarea>
+                    </div>
+                    <button onclick="desDecrypt()" class="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                        🔓 Giải Mã
+                    </button>
+                </div>
+                <div id="des-decrypt-result" style="display: none;" class="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <p class="text-sm text-slate-400 mb-2">Kết quả giải mã:</p>
+                    <p id="des-decrypt-text" class="font-mono text-sm text-red-400 break-all"></p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass p-6 rounded-2xl border border-slate-800">
+            <h3 class="text-lg font-bold text-slate-300 mb-3">📝 Thông tin DES</h3>
+            <ul class="text-sm text-slate-400 space-y-2">
+                <li><strong>Kích thước khóa:</strong> 64 bit (56 bit hiệu lực)</li>
+                <li><strong>Kích thước khối:</strong> 64 bit</li>
+                <li><strong>Số vòng:</strong> 16 vòng</li>
+                <li><strong>Chế độ:</strong> ECB (Electronic Code Book)</li>
+                <li><strong>Đệm:</strong> PKCS7</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function desEncrypt() {
+            const plaintext = document.getElementById('des-plaintext').value;
+            const key = document.getElementById('des-key').value;
+            
+            try {
+                const response = await fetch('/api/des/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('des-encrypt-text').textContent = data.result;
+                    document.getElementById('des-encrypt-result').style.display = 'block';
+                    document.getElementById('des-ciphertext').value = data.result;
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        async function desDecrypt() {
+            const ciphertext = document.getElementById('des-ciphertext').value;
+            const key = document.getElementById('des-decrypt-key').value;
+            
+            try {
+                const response = await fetch('/api/des/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('des-decrypt-text').textContent = data.result;
+                    document.getElementById('des-decrypt-result').style.display = 'block';
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

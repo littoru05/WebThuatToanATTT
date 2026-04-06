@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Encryption - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+        
+        .matrix {
+            display: inline-grid;
+            grid-template-columns: repeat(4, 60px);
+            gap: 2px;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 2px solid #a855f7;
+            margin: 4px 0;
+        }
+        
+        .matrix-cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #581c87;
+            border: 1px solid #c084fc;
+            color: #d8b4fe;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .steps-container {
+            max-height: 600px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #c084fc;
+            padding: 8px;
+        }
+        
+        .step-item {
+            background: rgba(88, 28, 135, 0.3);
+            border-left: 4px solid #a855f7;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 4px;
+        }
+        
+        .step-number {
+            font-size: 12px;
+            color: #c084fc;
+            font-weight: bold;
+        }
+        
+        .step-name {
+            font-size: 14px;
+            color: #d8b4fe;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-purple-950 via-black to-violet-950 opacity-80"></div>
+    
+    <div class="relative z-10 p-8">
+        <a href="/" class="inline-flex items-center gap-2 mb-10 text-purple-400 hover:text-purple-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-purple-500 pb-8">
+                <h1 class="text-5xl font-bold text-purple-400 mb-2">⚡ ADVANCED ENCRYPTION STD ⚡</h1>
+                <p class="text-purple-300 text-sm tracking-widest">Block Cipher | 128-bit Block | 128-bit Key | Step-by-Step Analysis</p>
+                <div class="text-xs text-purple-200 mt-4 space-y-1">
+                    <div>Year: 2001 | Developer: Rijmen & Daemen | Standard: NIST</div>
+                    <div>Xem chi tiết các bước biến đổi: SubBytes → ShiftRows → MixColumns → AddRoundKey</div>
+                </div>
+            </header>
+
+            <!-- INPUT SECTION -->
+            <section class="mb-8 border-2 border-purple-600 p-6 bg-purple-950/20">
+                <h3 class="text-xl font-bold text-purple-300 mb-6">╔ MÃ HÓA BƯỚC-TỪNG-BƯỚC ╗</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="text-purple-300 font-bold mb-2 text-sm block">Plaintext (văn bản gốc):</label>
+                        <input type="text" id="aes-plaintext" 
+                               class="w-full px-3 py-2 bg-black border border-purple-600 text-purple-200 font-mono focus:outline-none focus:border-purple-400" 
+                               placeholder="VD: Hello!!!!!!!!!!">
+                        <p class="text-purple-200 text-xs mt-1">* Tự động thêm padding để 16 bytes</p>
+                    </div>
+                    <div>
+                        <label class="text-purple-300 font-bold mb-2 text-sm block">Key (khóa):</label>
+                        <input type="text" id="aes-key" 
+                               class="w-full px-3 py-2 bg-black border border-purple-600 text-purple-200 font-mono focus:outline-none focus:border-purple-400" 
+                               placeholder="VD: mysecretpassword">
+                        <p class="text-purple-200 text-xs mt-1">* 16 ký tự = 128-bit key</p>
+                    </div>
+                </div>
+                
+                <button onclick="aesEncryptDetailed()" 
+                        class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold border-2 border-purple-400 transition-all active:scale-95">
+                    [ ► MÃ HÓA - HIỂN THỊ CÁC BƯỚC ]
+                </button>
+            </section>
+
+            <!-- STEPS DISPLAY -->
+            <div id="steps-output" style="display: none;">
+                <!-- Key Info -->
+                <section class="mb-8 border-2 border-purple-500 p-6 bg-purple-950/20">
+                    <h3 class="text-lg font-bold text-purple-300 mb-4">☞ THÔNG TIN MÃ HÓA</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-black border border-purple-600 p-3">
+                            <p class="text-purple-400 text-xs font-bold">PLAINTEXT (HEX)</p>
+                            <p id="display-plaintext" class="text-purple-200 font-mono break-all mt-1"></p>
+                        </div>
+                        <div class="bg-black border border-purple-600 p-3">
+                            <p class="text-purple-400 text-xs font-bold">KEY (HEX)</p>
+                            <p id="display-key" class="text-purple-200 font-mono break-all mt-1"></p>
+                        </div>
+                        <div class="bg-black border border-purple-600 p-3">
+                            <p class="text-purple-400 text-xs font-bold">CIPHERTEXT (HEX)</p>
+                            <p id="display-ciphertext" class="text-purple-200 font-mono break-all mt-1"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Steps Timeline -->
+                <section class="border-2 border-purple-500 p-6 bg-purple-950/20">
+                    <h3 class="text-lg font-bold text-purple-300 mb-4">⚙️ CÁC BƯỚC BIẾN ĐỔI (10 VÒNG + FINAL)</h3>
+                    <p class="text-purple-200 text-xs mb-4">Chi tiết từng bước với input, operation, output</p>
+                    
+                    <div class="steps-container" id="steps-list">
+                        <!-- Sẽ được điền bởi JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- LOADING INDICATOR -->
+            <div id="loading" style="display: none;" class="text-center py-8">
+                <p class="text-purple-300 text-lg">⏳ Đang xử lý...</p>
+            </div>
+
+            <!-- ERROR DISPLAY -->
+            <div id="error-display" style="display: none;" class="border-2 border-red-600 bg-red-950/20 p-6 mt-8">
+                <p class="text-red-400 font-bold">❌ Lỗi:</p>
+                <p id="error-text" class="text-red-300 font-mono mt-2"></p>
+            </div>
+
+            <!-- INFO BOX -->
+            <section class="mt-12 border-2 border-gray-600 p-6 bg-gray-950/30">
+                <h3 class="text-lg font-bold text-gray-300 mb-3">╔ THÔNG TIN CHUYÊN MÔN ╗</h3>
+                <div class="text-sm text-gray-300 space-y-2 font-mono">
+                    <p><strong>Kích Thước Block:</strong> 128 bits (16 bytes)</p>
+                    <p><strong>Kích Thước Khóa:</strong> 128 bits (16 bytes)</p>
+                    <p><strong>Số Vòng:</strong> 10 vòng đầy đủ + 1 vòng cuối</p>
+                    <p><strong>Các Bước Mỗi Vòng:</strong> SubBytes → ShiftRows → MixColumns → AddRoundKey</p>
+                    <p><strong>Vòng Cuối:</strong> SubBytes → ShiftRows → AddRoundKey (không có MixColumns)</p>
+                    <p class="text-green-400 mt-2">✓ Tiêu chuẩn mã hóa hiện tại được khuyên dùng bởi NIST</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        async function aesEncryptDetailed() {
+            const plaintext = document.getElementById('aes-plaintext').value;
+            const key = document.getElementById('aes-key').value;
+            
+            if (!plaintext || !key) {
+                alert('❌ Vui lòng nhập plaintext và key!');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('steps-output').style.display = 'none';
+            document.getElementById('error-display').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/aes/encrypt-detailed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('display-plaintext').textContent = data.plaintext;
+                    document.getElementById('display-key').textContent = data.key;
+                    document.getElementById('display-ciphertext').textContent = data.ciphertext;
+                    
+                    // Render steps
+                    const stepsList = document.getElementById('steps-list');
+                    stepsList.innerHTML = '';
+                    
+                    data.steps.forEach((step, idx) => {
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = 'step-item';
+                        
+                        // Step header
+                        const header = document.createElement('div');
+                        header.className = 'flex justify-between items-center cursor-pointer hover:bg-purple-700/20 p-2 rounded';
+                        header.innerHTML = `
+                            <div>
+                                <p class="step-number">Step ${step.step}</p>
+                                <p class="step-name">${step.name}</p>
+                            </div>
+                            <span class="text-purple-400 text-lg" onclick="event.stopPropagation()">▼</span>
+                        `;
+                        
+                        // Detailed info display (new format with input, key, output, explanation)
+                        const detailDiv = document.createElement('div');
+                        detailDiv.className = 'detail-container hidden mt-3';
+                        detailDiv.style.marginTop = '8px';
+                        
+                        let detailHTML = '';
+                        
+                        // Explanation
+                        if (step.explanation) {
+                            detailHTML += `<p style="color: #d8b4fe; font-size: 13px; margin-bottom: 8px; padding: 4px; background: rgba(88,28,135,0.5); border-left: 3px solid #a855f7;">📝 ${step.explanation}</p>`;
+                        }
+                        
+                        // Create detailed table
+                        detailHTML += '<div style="overflow-x: auto; margin-bottom: 6px;">';
+                        detailHTML += '<table style="width: 100%; border-collapse: collapse; font-size: 11px; color: #d8b4fe;">';
+                        detailHTML += '<tr style="border-bottom: 2px solid #a855f7;">';
+                        
+                        // Column headers based on step type
+                        if (step.type === 'add_round_key') {
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc; border-right: 1px solid #a855f7;">Input State</th>';
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc; border-right: 1px solid #a855f7;">Round Key</th>';
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc; border-right: 1px solid #a855f7;">XOR (⊕)</th>';
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc;">Output State</th>';
+                        } else {
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc;">Input State</th>';
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc;">Transformation</th>';
+                            detailHTML += '<th style="padding: 4px; text-align: center; color: #c084fc;">Output State</th>';
+                        }
+                        
+                        detailHTML += '</tr>';
+                        
+                        // Data rows
+                        detailHTML += '<tr style="border-bottom: 1px solid #581c87;">';
+                        
+                        // Input column
+                        detailHTML += '<td style="padding: 4px; border-right: 1px solid #a855f7; vertical-align: top;">';
+                        if (step.input) {
+                            detailHTML += '<small style="display: block; color: #a855f7; margin-bottom: 2px; font-weight: bold;">[ Input ]</small>';
+                            for (let i = 0; i < 4; i++) {
+                                const row = step.input[i].map(v => v.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                                detailHTML += `<div style="font-family: 'Roboto Mono';">${row}</div>`;
+                            }
+                        }
+                        detailHTML += '</td>';
+                        
+                        // Key/Operation column
+                        if (step.type === 'add_round_key') {
+                            detailHTML += '<td style="padding: 4px; border-right: 1px solid #a855f7; vertical-align: top;">';
+                            if (step.key) {
+                                detailHTML += '<small style="display: block; color: #a855f7; margin-bottom: 2px; font-weight: bold;">[ Round Key ]</small>';
+                                for (let i = 0; i < 4; i++) {
+                                    const row = step.key[i].map(v => v.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                                    detailHTML += `<div style="font-family: 'Roboto Mono';">${row}</div>`;
+                                }
+                            }
+                            detailHTML += '</td>';
+                            
+                            // XOR operation
+                            detailHTML += '<td style="padding: 4px; border-right: 1px solid #a855f7; vertical-align: center; text-align: center; color: #f59e0b;">';
+                            detailHTML += '<strong style="font-size: 16px;">⊕</strong><br/>';
+                            detailHTML += '<small style="color: #d8b4fe;">XOR</small>';
+                            detailHTML += '</td>';
+                        } else {
+                            // For other operations (SubBytes, ShiftRows, MixColumns)
+                            detailHTML += '<td style="padding: 4px; border-right: 1px solid #a855f7; vertical-align: center; text-align: center; color: #f59e0b;">';
+                            detailHTML += `<small style="display: block; color: #a855f7; margin-bottom: 4px; font-weight: bold;">${step.type.replace(/_/g, ' ').toUpperCase()}</small>`;
+                            detailHTML += `<small style="color: #d8b4fe;">Round ${step.round || '?'}</small>`;
+                            detailHTML += '</td>';
+                        }
+                        
+                        // Output column
+                        detailHTML += '<td style="padding: 4px; vertical-align: top;">';
+                        if (step.output) {
+                            detailHTML += '<small style="display: block; color: #a855f7; margin-bottom: 2px; font-weight: bold;">[ Output ]</small>';
+                            for (let i = 0; i < 4; i++) {
+                                const row = step.output[i].map(v => v.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                                detailHTML += `<div style="font-family: 'Roboto Mono';">${row}</div>`;
+                            }
+                        }
+                        detailHTML += '</td>';
+                        
+                        detailHTML += '</tr>';
+                        detailHTML += '</table>';
+                        detailHTML += '</div>';
+                        
+                        detailDiv.innerHTML = detailHTML;
+                        
+                        // Toggle on header click
+                        header.addEventListener('click', function() {
+                            detailDiv.classList.toggle('hidden');
+                            const span = header.querySelector('span');
+                            span.textContent = detailDiv.classList.contains('hidden') ? '▶' : '▼';
+                        });
+                        
+                        stepDiv.appendChild(header);
+                        stepDiv.appendChild(detailDiv);
+                        stepsList.appendChild(stepDiv);
+                    });
+                    
+                    document.getElementById('steps-output').style.display = 'block';
+                    document.getElementById('loading').style.display = 'none';
+                } else {
+                    showError(data.error || 'Lỗi không xác định');
+                }
+            } catch (e) {
+                showError(e.message);
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-display').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+        <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-emerald-600/10 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto relative z-10">
+        <a href="index.html" class="inline-flex items-center gap-2 mb-8 text-emerald-400 hover:text-emerald-300 transition-colors">
+            <span>←</span>
+            <span class="text-sm font-medium">Quay lại</span>
+        </a>
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter uppercase">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                    AES Encryption
+                </span>
+            </h1>
+            <p class="text-slate-400 text-sm mt-4">Advanced Encryption Standard - Mã hóa hiện đại an toàn</p>
+        </header>
+
+        <div class="glass p-8 rounded-3xl border border-slate-800 shadow-xl mb-8">
+            
+            <!-- MÃ HÓA -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                    <span class="text-2xl">🛡️</span> Mã Hóa AES
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Khóa (Key - 256 bit / 32 ký tự)</label>
+                        <input type="text" id="aes-key" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500" placeholder="VD: mysecretpasswordlong123456">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Văn Bản Gốc (Plaintext)</label>
+                        <textarea id="aes-plaintext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 h-24 resize-none" placeholder="VD: Hello World! Bí mật..."></textarea>
+                    </div>
+                    <button onclick="aesEncrypt()" class="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                        🔐 Mã Hóa
+                    </button>
+                </div>
+                <div id="aes-encrypt-result" style="display: none;" class="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                    <p class="text-sm text-slate-400 mb-2">Kết quả mã hóa (Base64):</p>
+                    <p id="aes-encrypt-text" class="font-mono text-sm text-emerald-400 break-all"></p>
+                </div>
+            </div>
+
+            <!-- GIẢI MÃ -->
+            <div class="border-t border-slate-700 pt-8">
+                <h2 class="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                    <span class="text-2xl">🔓</span> Giải Mã AES
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Khóa (Key)</label>
+                        <input type="text" id="aes-decrypt-key" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500" placeholder="VD: mysecretpasswordlong123456">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Văn Bản Mã Hóa (Ciphertext - Base64)</label>
+                        <textarea id="aes-ciphertext" class="w-full px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 h-24 resize-none" placeholder="Dữ liệu Base64 từ phần mã hóa"></textarea>
+                    </div>
+                    <button onclick="aesDecrypt()" class="w-full px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg transition-colors active:scale-95">
+                        🔓 Giải Mã
+                    </button>
+                </div>
+                <div id="aes-decrypt-result" style="display: none;" class="mt-4 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                    <p class="text-sm text-slate-400 mb-2">Kết quả giải mã:</p>
+                    <p id="aes-decrypt-text" class="font-mono text-sm text-cyan-400 break-all"></p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass p-6 rounded-2xl border border-slate-800">
+            <h3 class="text-lg font-bold text-slate-300 mb-3">📝 Thông tin AES</h3>
+            <ul class="text-sm text-slate-400 space-y-2">
+                <li><strong>Kích thước khóa:</strong> 256 bit (AES-256)</li>
+                <li><strong>Kích thước khối:</strong> 128 bit</li>
+                <li><strong>Số vòng:</strong> 14 vòng</li>
+                <li><strong>Chế độ:</strong> EAX (Encrypt-Then-Authenticate-Then-Translate)</li>
+                <li><strong>Định dạng đầu ra:</strong> Base64</li>
+                <li><strong>Bảo mật:</strong> Rất cao, được khuyến cáo sử dụng toàn cầu</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function aesEncrypt() {
+            const plaintext = document.getElementById('aes-plaintext').value;
+            const key = document.getElementById('aes-key').value;
+            
+            try {
+                const response = await fetch('/api/aes/encrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plaintext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('aes-encrypt-text').textContent = data.result;
+                    document.getElementById('aes-encrypt-result').style.display = 'block';
+                    document.getElementById('aes-ciphertext').value = data.result;
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+
+        async function aesDecrypt() {
+            const ciphertext = document.getElementById('aes-ciphertext').value;
+            const key = document.getElementById('aes-decrypt-key').value;
+            
+            try {
+                const response = await fetch('/api/aes/decrypt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ciphertext, key })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('aes-decrypt-text').textContent = data.result;
+                    document.getElementById('aes-decrypt-result').style.display = 'block';
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (e) {
+                alert('Lỗi kết nối: ' + e.message);
+            }
+        }
+    </script>
+    <script>
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>

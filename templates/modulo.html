@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modulo Mathematics - ENCRYPTION LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata&family=Roboto+Mono:wght@700&display=swap');
+        h1, h2, h3 { font-family: 'Roboto Mono', monospace; }
+        body { font-family: 'Inconsolata', monospace; }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="fixed inset-0 bg-gradient-to-br from-amber-950 via-black to-orange-950 opacity-80"></div>
+
+    
+    <div class="relative z-10 p-8">
+        <a href="/" class="inline-flex items-center gap-2 mb-10 text-amber-400 hover:text-amber-200 transition-colors font-mono">
+            <span class="text-xl">◄◄</span>
+            <span class="text-sm">[ Home ]</span>
+        </a>
+
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-12 border-b-2 border-amber-500 pb-8">
+                <h1 class="text-5xl font-bold text-amber-400 mb-2">∑ MODULO MATHEMATICS ∑</h1>
+                <p class="text-amber-300 text-sm tracking-widest">10 Exercises | CRT | Euler φ | Discrete Log | Fermat | Primitive Root</p>
+                <div class="text-xs text-amber-200 mt-4 space-y-1">
+                    <div>Year: Ancient | Developer: Mathematicians | Standard: Number Theory</div>
+                    <div>Foundation for cryptography: RSA, ElGamal, Diffie-Hellman</div>
+                </div>
+            </header>
+
+            <!-- TEST CASES INTRO -->
+            <section class="mb-12 border-2 border-amber-700 p-6 bg-amber-950/30">
+                <h3 class="text-xl font-bold text-amber-300 mb-4">╔ EXERCISE OVERVIEW ╗</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-amber-200 font-mono">
+                    <div class="bg-black/50 p-3 border-l-2 border-amber-500">
+                        <p><strong>Ex 1-3:</strong> Power modulo, inverses, Fermat</p>
+                        <p class="text-amber-100 mt-1">Basic operations in modular arithmetic</p>
+                    </div>
+                    <div class="bg-black/50 p-3 border-l-2 border-amber-500">
+                        <p><strong>Ex 4-6:</strong> Euler φ function, CRT Power</p>
+                        <p class="text-amber-100 mt-1">Advanced number theory for cryptography</p>
+                    </div>
+                    <div class="bg-black/50 p-3 border-l-2 border-amber-500">
+                        <p><strong>Ex 7-10:</strong> CRT system, Roots, Discrete log</p>
+                        <p class="text-amber-100 mt-1">Applied number theory and key exchange</p>
+                    </div>
+                    <div class="bg-black/50 p-3 border-l-2 border-amber-500">
+                        <p><strong>Standard Test:</strong> a=2, m=5, n=13</p>
+                        <p class="text-amber-100 mt-1">Result: 2^5 mod 13 = 6</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 10 EXERCISE GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- EX 1: Power Mod -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">① a^m mod n</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">Base (a):</label>
+                            <input type="number" id="mod-ex1-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="2">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">Exponent (m):</label>
+                            <input type="number" id="mod-ex1-m" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="5">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">Modulus (n):</label>
+                            <input type="number" id="mod-ex1-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="13">
+                        </div>
+                        <button onclick="moduloEx1()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex1-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 2: Mod Inverse -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">② a^-1 mod n</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">a:</label>
+                            <input type="number" id="mod-ex2-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="3">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">n:</label>
+                            <input type="number" id="mod-ex2-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="7">
+                        </div>
+                        <button onclick="moduloEx2()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex2-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 3: Fermat -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">③ Fermat's Theorem</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">a:</label>
+                            <input type="number" id="mod-ex3-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="2">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">m:</label>
+                            <input type="number" id="mod-ex3-m" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="6">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">p (prime):</label>
+                            <input type="number" id="mod-ex3-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="11">
+                        </div>
+                        <button onclick="moduloEx3()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex3-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 4: Euler Phi -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">④ Euler φ(n)</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">n:</label>
+                            <input type="number" id="mod-ex4-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="12">
+                        </div>
+                        <button onclick="moduloEx4()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex4-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 5: Euler Theorem -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑤ Euler's Theorem</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">a:</label>
+                            <input type="number" id="mod-ex5-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="3">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">exp:</label>
+                            <input type="number" id="mod-ex5-m" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="100">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">n:</label>
+                            <input type="number" id="mod-ex5-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="10">
+                        </div>
+                        <button onclick="moduloEx5()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex5-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 6: CRT Power -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑥ CRT Power</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">a:</label>
+                            <input type="number" id="mod-ex6-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="2">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">k:</label>
+                            <input type="number" id="mod-ex6-k" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="10">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">n:</label>
+                            <input type="number" id="mod-ex6-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="21">
+                        </div>
+                        <button onclick="moduloEx6()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex6-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 7: CRT System -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑦ Chinese Remainder Theorem</h2>
+                    <div class="space-y-2 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="col-span-2 text-amber-300 font-bold">Congruence 1:</label>
+                            <input type="number" id="mod-ex7-m1" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="m1">
+                            <input type="number" id="mod-ex7-a1" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="a1">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="col-span-2 text-amber-300 font-bold">Congruence 2:</label>
+                            <input type="number" id="mod-ex7-m2" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="m2">
+                            <input type="number" id="mod-ex7-a2" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="a2">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="col-span-2 text-amber-300 font-bold">Congruence 3:</label>
+                            <input type="number" id="mod-ex7-m3" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="m3">
+                            <input type="number" id="mod-ex7-a3" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="a3">
+                        </div>
+                        <button onclick="moduloEx7()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ SOLVE ]</button>
+                        <div id="modulo-ex7-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 8: Primitive Root -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑧ Primitive Root</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">g (candidate):</label>
+                            <input type="number" id="mod-ex8-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="2">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">p (prime):</label>
+                            <input type="number" id="mod-ex8-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="11">
+                        </div>
+                        <button onclick="moduloEx8()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CHECK ]</button>
+                        <div id="modulo-ex8-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 9: Discrete Log -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑨ Discrete Logarithm</h2>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">g (base):</label>
+                            <input type="number" id="mod-ex9-a" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="2">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">b (result):</label>
+                            <input type="number" id="mod-ex9-b" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="9">
+                        </div>
+                        <div>
+                            <label class="text-amber-300 font-bold block mb-1">p (prime):</label>
+                            <input type="number" id="mod-ex9-n" class="w-full px-3 py-2 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="11">
+                        </div>
+                        <button onclick="moduloEx9()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ FIND x ]</button>
+                        <div id="modulo-ex9-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- EX 10: Complex Expression -->
+                <div class="border-2 border-amber-500 bg-amber-950/20 p-6">
+                    <h2 class="text-xl font-bold text-amber-400 mb-4 border-b-2 border-amber-500 pb-2">⑩ Complex Expressions</h2>
+                    <div class="space-y-2 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="mod-ex10-a" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="a">
+                            <input type="number" id="mod-ex10-b" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="b">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="mod-ex10-x" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="x">
+                            <input type="number" id="mod-ex10-y" class="px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="y">
+                        </div>
+                        <input type="number" id="mod-ex10-n" class="w-full px-3 py-1 bg-black border border-amber-600 text-amber-200 font-mono focus:outline-none focus:border-amber-400" placeholder="n">
+                        <button onclick="moduloEx10()" class="w-full px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold border-2 border-amber-400 transition-all active:scale-95">[ CALCULATE ]</button>
+                        <div id="modulo-ex10-result" style="display: none;" class="bg-black border-2 border-amber-400 p-3 text-amber-200 text-sm font-mono max-h-40 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- INFO BOX -->
+            <section class="mt-12 border-2 border-gray-600 p-6 bg-gray-950/30">
+                <h3 class="text-lg font-bold text-gray-300 mb-3">╔ CRYPTOGRAPHIC APPLICATIONS ╗</h3>
+                <div class="text-sm text-gray-300 space-y-2 font-mono">
+                    <p><strong>Fermat & Euler:</strong> RSA digital signatures, key generation</p>
+                    <p><strong>CRT:</strong> Speeding up RSA decryption by 4x</p>
+                    <p><strong>Primitive Roots:</strong> Diffie-Hellman key exchange, ElGamal encryption</p>
+                    <p><strong>Discrete Log:</strong> Foundation of elliptic curve cryptography (ECC)</p>
+                    <p class="text-orange-400 mt-2">All exercises are building blocks for understanding modern cryptography.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        document.querySelectorAll('a[href="index.html"]').forEach(link => {
+            link.href = '/';
+        });
+    </script>
+</body>
+</html>
