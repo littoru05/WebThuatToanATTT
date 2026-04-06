@@ -142,19 +142,6 @@ encryption_web/
 3. **Thêm UI** trong `templates/index.html`
 4. **Thêm logic frontend** trong `static/js/script.js`
 
-## 📞 Hỗ Trợ
-
-Nếu bạn gặp vấn đề:
-
-1. Kiểm tra xem tất cả dependencies đã được cài đặt
-2. Đảm bảo Flask server đang chạy
-3. Kiểm tra console browser để tìm lỗi JavaScript
-4. Kiểm tra terminal để tìm lỗi Python
-
-## 📄 License
-
-Dự án này được tạo cho mục đích học tập.
-
 ---
 
 **Tạo bởi**: GitHub Copilot
